@@ -1,5 +1,6 @@
 package sv.edu.itca.practicas_profesionales_itca_web.config;
 
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Rol;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +27,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // Deshabilitamos CSRF porque usaremos una API REST (normalmente con tokens, no cookies de sesión)
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
 
                 // Definimos las reglas de autorización
                 .authorizeHttpRequests(auth -> auth
