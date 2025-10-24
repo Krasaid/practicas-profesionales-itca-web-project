@@ -1,57 +1,89 @@
 package sv.edu.itca.practicas_profesionales_itca_web.config;
 
 import sv.edu.itca.practicas_profesionales_itca_web.model.Rol;
+import sv.edu.itca.practicas_profesionales_itca_web.service.MyUserDetailsService; // <-- ¡IMPORTA ESTO!
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider; // <-- ¡IMPORTA ESTO!
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // (1) Bean para encriptar contraseñas
-    // Spring lo usará automáticamente para comparar contraseñas en el login
+    // --- ¡FIX 1: INYECTAR EL SERVICIO! ---
+    private final MyUserDetailsService myUserDetailsService;
+
+    public SecurityConfig(MyUserDetailsService myUserDetailsService) {
+        this.myUserDetailsService = myUserDetailsService;
+    }
+    // --- FIN FIX 1 ---
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // (2) Bean principal que configura las reglas de acceso (el "firewall")
+    // --- ¡FIX 2: CREAR EL PROVEEDOR DE AUTENTICACIÓN! ---
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(myUserDetailsService); // <-- Usa tu servicio
+        authProvider.setPasswordEncoder(passwordEncoder()); // <-- Usa tu encriptador
+        return authProvider;
+    }
+    // --- FIN FIX 2 ---
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Deshabilitamos CSRF porque usaremos una API REST (normalmente con tokens, no cookies de sesión)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-
-                // Definimos las reglas de autorización
                 .authorizeHttpRequests(auth -> auth
-                        // Permite el acceso a todos para un futuro endpoint de login
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // --- ¡LÍNEA AÑADIDA! ---
+                        // Permite que cualquier usuario autenticado consulte su identidad
+                        .requestMatchers("/api/auth/me").authenticated()
+                        // --- FIN DE LÍNEA ---
 
-                        // Protege los endpoints de ALUMNO
+                        // --- RUTAS POR ROL ---
                         .requestMatchers("/api/alumno/**").hasAuthority(Rol.ALUMNO.name())
-
-                        // Protege los endpoints de COORDINADOR
                         .requestMatchers("/api/coordinador/**").hasAuthority(Rol.COORDINADOR.name())
 
-                        // Cualquier otra petición debe estar autenticada
+                        // --- CUALQUIER OTRA RUTA REQUIERE AUTENTICACIÓN ---
                         .anyRequest().authenticated()
                 )
-
-                // Le decimos a Spring Security que no maneje sesiones (modo "stateless" para API REST)
+                .httpBasic(basic -> {})
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
-        // Habilita la configuración básica de login HTTP
-        // Esto te dará un formulario de login por defecto de Spring mientras construyes el frontend
-        http.httpBasic(basic -> {});
+        // --- ¡FIX 3: APLICAR EL PROVEEDOR! ---
+        http.authenticationProvider(authenticationProvider());
+        // --- FIN FIX 3 ---
 
         return http.build();
+    }
+
+    // (El Bean de CORS sigue igual)
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }

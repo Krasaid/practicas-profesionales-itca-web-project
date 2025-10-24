@@ -1,82 +1,104 @@
 package sv.edu.itca.practicas_profesionales_itca_web.controller;
 
-import sv.edu.itca.practicas_profesionales_itca_web.dto.UpdateEstadoRequest; // DTO que contendrá nuevoEstado y explicacion
-import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;
-import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;
-import sv.edu.itca.practicas_profesionales_itca_web.model.Usuario;
-import sv.edu.itca.practicas_profesionales_itca_web.service.CoordinadorService;
-import sv.edu.itca.practicas_profesionales_itca_web.service.MyUserDetailsService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import sv.edu.itca.practicas_profesionales_itca_web.dto.CrearUsuarioRequest;
+import sv.edu.itca.practicas_profesionales_itca_web.dto.UpdateEstadoRequest;
+import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;
+import sv.edu.itca.practicas_profesionales_itca_web.model.Usuario;
+import sv.edu.itca.practicas_profesionales_itca_web.repository.UsuarioRepository;
+import sv.edu.itca.practicas_profesionales_itca_web.service.CoordinadorService;
+import sv.edu.itca.practicas_profesionales_itca_web.service.UsuarioService;
 
+// --- ¡FIX 1: Imports Limpios! ---
 import java.util.List;
+import java.util.Map; // <-- ¡AÑADIDO! Faltaba este import
+// (Quitamos los imports duplicados)
+// --- FIN FIX 1 ---
 
 @RestController
 @RequestMapping("/api/coordinador")
 public class CoordinadorController {
 
-    private final CoordinadorService coordinadorService;
-    private final MyUserDetailsService userDetailsService;
+    @Autowired
+    private CoordinadorService coordinadorService;
 
     @Autowired
-    public CoordinadorController(CoordinadorService coordinadorService, MyUserDetailsService userDetailsService) {
-        this.coordinadorService = coordinadorService;
-        this.userDetailsService = userDetailsService;
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    /**
+     * Obtiene el usuario autenticado a partir del token.
+     * (Esta es la ÚNICA definición del método)
+     */
+    private Usuario getUsuarioFromAuth(Authentication authentication) {
+        String email = authentication.getName();
+        return usuarioRepository.findByCorreoInstitucional(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Usuario no encontrado"
+                ));
     }
 
     /**
-     * Endpoint para ver todas las propuestas (con filtros).
+     * Devuelve las propuestas asignadas al área del coordinador autenticado.
      */
     @GetMapping("/propuestas")
-    public ResponseEntity<List<Propuesta>> getPropuestas(
-            Authentication authentication,
-            @RequestParam(required = false) String estado, // Filtro por estado
-            @RequestParam(required = false) String empresa // Filtro por empresa
-    ) {
-        Usuario coordinador = getUsuarioDesdeAuth(authentication);
-
-        List<Propuesta> propuestas = coordinadorService.getPropuestasPorArea(
-                coordinador.getArea(), // Filtra automáticamente por el área del coordinador
-                estado,
-                empresa
-        );
+    public ResponseEntity<List<Propuesta>> getPropuestas(Authentication authentication) {
+        Usuario coordinador = getUsuarioFromAuth(authentication);
+        List<Propuesta> propuestas = coordinadorService.getPropuestasPorArea(coordinador.getArea());
         return ResponseEntity.ok(propuestas);
     }
 
     /**
-     * Endpoint para aprobar o denegar una propuesta.
+     * Actualiza el estado de una propuesta (HU-9).
      */
     @PutMapping("/propuestas/{id}/estado")
     public ResponseEntity<Propuesta> updateEstado(
             @PathVariable Long id,
-            @RequestBody UpdateEstadoRequest request
+            @RequestBody UpdateEstadoRequest request,
+            Authentication authentication
     ) {
+        Usuario coordinador = getUsuarioFromAuth(authentication);
+
         try {
             Propuesta actualizada = coordinadorService.updateEstadoPropuesta(
                     id,
                     request.getNuevoEstado(),
-                    request.getExplicacion()
+                    request.getExplicacion(),
+                    coordinador.getArea()
             );
             return ResponseEntity.ok(actualizada);
         } catch (IllegalStateException e) {
-            // Si falta la explicación al denegar
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (RuntimeException e) {
-            // Si no se encuentra la propuesta
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Propuesta no encontrada");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
-    /**
-     * Método helper para obtener el usuario autenticado.
-     */
-    private Usuario getUsuarioDesdeAuth(Authentication authentication) {
-        String correo = authentication.getName();
-        return userDetailsService.getUsuarioByCorreo(correo);
+    // --- ¡FIX 2: Quitamos el bloque comentado! ---
+    // (Ya no necesitamos la versión antigua y comentada)
+
+    // --- ¡NUEVO ENDPOINT (HU-12)! ---
+    @PostMapping("/alumnos") // Endpoint: POST /api/coordinador/alumnos
+    public ResponseEntity<?> crearNuevoAlumno(@RequestBody CrearUsuarioRequest request) {
+        try {
+            Usuario nuevoUsuario = usuarioService.crearUsuario(request);
+            // (Devolvemos un Map, ahora SÍ está importado)
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Usuario creado con ID: " + nuevoUsuario.getId()));
+        } catch (IllegalStateException e) {
+            // (Manejo de error si el correo ya existe)
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        }
     }
+    // --- FIN NUEVO ENDPOINT ---
+
+
+    // --- ¡FIX 3: BORRAMOS el método duplicado getUsuarioFromAuth() de aquí! ---
+
 }

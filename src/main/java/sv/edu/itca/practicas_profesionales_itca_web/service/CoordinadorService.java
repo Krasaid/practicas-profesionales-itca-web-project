@@ -1,59 +1,44 @@
 package sv.edu.itca.practicas_profesionales_itca_web.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Area;
 import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;
 import sv.edu.itca.practicas_profesionales_itca_web.repository.PropuestaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CoordinadorService {
 
-    private final PropuestaRepository propuestaRepo;
-
     @Autowired
-    public CoordinadorService(PropuestaRepository propuestaRepo) {
-        this.propuestaRepo = propuestaRepo;
+    private PropuestaRepository propuestaRepo;
+
+    public List<Propuesta> getPropuestasPorArea(Area area) {
+        return propuestaRepo.findByAlumno_Area(area);
     }
 
-    public List<Propuesta> getPropuestasPorArea(Area area, String filtroEstado, String filtroEmpresa) {
+    public Propuesta updateEstadoPropuesta(Long propuestaId, EstadoPropuesta nuevoEstado, String explicacion, Area areaCoordinador) {
+        Propuesta p = propuestaRepo.findById(propuestaId)
+                .orElseThrow(() -> new IllegalStateException("Propuesta no encontrada"));
 
-        List<Propuesta> propuestas = propuestaRepo.findByAlumno_Area(area);
-
-        if (filtroEstado != null && !filtroEstado.isBlank()) {
-            propuestas = propuestas.stream()
-                    .filter(p -> p.getEstado().name().equalsIgnoreCase(filtroEstado))
-                    .collect(Collectors.toList());
+     // Verificación de seguridad: El coord. solo puede editar propuestas de su área [cite: 28]
+        if (p.getAlumno().getArea() != areaCoordinador) {
+            throw new SecurityException("No tiene permisos para editar esta propuesta.");
         }
 
-        if (filtroEmpresa != null && !filtroEmpresa.isBlank()) {
-            propuestas = propuestas.stream()
-                    .filter(p -> p.getEmpresa().toLowerCase().contains(filtroEmpresa.toLowerCase()))
-                    .collect(Collectors.toList());
+      // Regla de negocio: Explicación obligatoria si es Denegado [cite: 35]
+        if (nuevoEstado == EstadoPropuesta.DENEGADO && (explicacion == null || explicacion.isBlank())) {
+            throw new IllegalStateException("La explicación es obligatoria para denegar.");
         }
 
-        return propuestas;
-    }
-
-    public Propuesta updateEstadoPropuesta(Long propuestaId, EstadoPropuesta nuevoEstado, String explicacion) {
-
-        Propuesta propuesta = propuestaRepo.findById(propuestaId)
-                .orElseThrow(() -> new RuntimeException("Propuesta no encontrada"));
-
+        p.setEstado(nuevoEstado);
         if (nuevoEstado == EstadoPropuesta.DENEGADO) {
-            if (explicacion == null || explicacion.isBlank()) {
-                throw new IllegalStateException("La explicación es obligatoria para denegar una propuesta.");
-            }
-            propuesta.setExplicacionRechazo(explicacion);
+            p.setExplicacionRechazo(explicacion);
         } else {
-            propuesta.setExplicacionRechazo(null);
+            p.setExplicacionRechazo(null); // Limpia la explicación si se aprueba
         }
-
-        propuesta.setEstado(nuevoEstado);
-        return propuestaRepo.save(propuesta);
+        return propuestaRepo.save(p);
     }
 }
