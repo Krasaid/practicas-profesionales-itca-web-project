@@ -1,10 +1,11 @@
-package sv.edu.itca.practicas_profesionales_itca_web.model;
+package sv.edu.itca.practicas_profesionales_itca_web.model; // (O tu paquete)
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Data; // <-- Asegúrate que @Data esté importado
 import java.time.LocalDate;
 
-@Data
+@Data // <-- ¡Asegúrate que @Data esté aquí!
 @Entity
 @Table(name = "propuestas")
 public class Propuesta {
@@ -13,18 +14,28 @@ public class Propuesta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Muchas propuestas pertenecen a un alumno
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "alumno_id", nullable = false)
     private Usuario alumno;
 
     @Enumerated(EnumType.STRING)
-    private EstadoPropuesta estado; // [cite: 34, 35, 37]
+    private EstadoPropuesta estado;
 
+    @Column(nullable = false)
     private String empresa;
+
     private LocalDate fechaEnvio;
+
+    @Column(nullable = false)
     private int horasPropuestas;
 
-    // Para la explicación obligatoria en caso de rechazo [cite: 35]
     private String explicacionRechazo;
+
+    // --- ¡ASEGÚRATE QUE ESTOS 3 CAMPOS ESTÉN AQUÍ! ---
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
+    // --- FIN DE CAMPOS ---
 }
