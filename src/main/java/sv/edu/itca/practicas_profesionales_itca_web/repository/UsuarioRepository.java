@@ -1,3 +1,4 @@
+//UsuarioRepository
 package sv.edu.itca.practicas_profesionales_itca_web.repository;
 
 import sv.edu.itca.practicas_profesionales_itca_web.model.Usuario;
