@@ -1,4 +1,7 @@
+//CoordinadorController
+
 package sv.edu.itca.practicas_profesionales_itca_web.controller;
+
 
 import sv.edu.itca.practicas_profesionales_itca_web.dto.UpdateEstadoRequest; // DTO que contendrá nuevoEstado y explicacion
 import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;

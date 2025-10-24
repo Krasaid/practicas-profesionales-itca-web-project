@@ -1,3 +1,4 @@
+//AlumnoController
 package sv.edu.itca.practicas_profesionales_itca_web.controller;
 
 import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;

@@ -1,3 +1,4 @@
+//CoordinadorService
 package sv.edu.itca.practicas_profesionales_itca_web.service;
 
 import sv.edu.itca.practicas_profesionales_itca_web.model.Area;
