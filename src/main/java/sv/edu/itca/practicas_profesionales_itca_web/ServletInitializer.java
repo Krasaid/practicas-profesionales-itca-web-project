@@ -11,3 +11,4 @@ public class ServletInitializer extends SpringBootServletInitializer {
 	}
 
 }
+//revisar logica en postman hice tres pruebas pero me dio error en post
