@@ -7,6 +7,7 @@ import sv.edu.itca.practicas_profesionales_itca_web.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.Optional;
  * al extender JpaRepository, además de las consultas personalizadas definidas.
  */
 @Repository
-public interface PropuestaRepository extends JpaRepository<Propuesta, Long> {
+public interface PropuestaRepository extends JpaRepository<Propuesta, Long>, JpaSpecificationExecutor<Propuesta> {
 
     /**
      * Busca todas las propuestas asociadas a un alumno específico.

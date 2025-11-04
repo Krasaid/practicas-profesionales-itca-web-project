@@ -18,14 +18,22 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-
+/**
+ * Controlador REST para las funcionalidades del rol COORDINADOR.
+ * Protegido bajo la ruta base "/api/coordinador" por Spring Security.
+ */
 @RestController
 @RequestMapping("/api/coordinador")
 public class CoordinadorController {
 
     private final CoordinadorService coordinadorService;
     private final MyUserDetailsService userDetailsService;
-
+    /**
+     * Inyección de dependencias vía constructor.
+     *
+     * @param coordinadorService Servicio con la lógica de negocio del coordinador.
+     * @param userDetailsService Servicio para cargar datos del usuario autenticado.
+     */
     @Autowired
     public CoordinadorController(CoordinadorService coordinadorService, MyUserDetailsService userDetailsService) {
         this.coordinadorService = coordinadorService;
@@ -33,24 +41,56 @@ public class CoordinadorController {
     }
 
     /**
-     * Endpoint para ver todas las propuestas (con filtros).
+     * Endpoint para obtener la lista de propuestas con filtros dinámicos.
+     * Filtra automáticamente por el área del coordinador logueado.
+     *
+     * @param authentication Objeto de seguridad de Spring (inyectado).
+     * @param estado         (Opcional) Filtra por estado (ej. "APROBADO", "EN_REVISION").
+     * @param empresa        (Opcional) Filtra por nombre de empresa (búsqueda 'like').
+     * @param alumnoId       (Opcional) Filtra por el ID de un alumno específico.
+     * @return ResponseEntity con la lista de propuestas (HTTP 200).
      */
     @GetMapping("/propuestas")
     public ResponseEntity<List<Propuesta>> getPropuestas(
             Authentication authentication,
             @RequestParam(required = false) String estado, // Filtro por estado
-            @RequestParam(required = false) String empresa // Filtro por empresa
+            @RequestParam(required = false) String empresa,// Filtro por empresa
+            @RequestParam(required = false) Long alumnoId
     ) {
         Usuario coordinador = getUsuarioDesdeAuth(authentication);
+    EstadoPropuesta estadoEnum = null;
+        if (estado != null && !estado.isBlank()) {
+            try {
+                // Intenta convertir el texto (ej. "APROBADO") al Enum
+                estadoEnum = EstadoPropuesta.valueOf(estado.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Si el frontend envía un estado inválido (ej. "APROBADO123"),
+                // se lanza una excepción. La capturamos y devolvemos un error 400.
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de 'estado' inválido: " + estado);
+            }
+        }
+        List<Propuesta> propuestas = coordinadorService.getPropuestasConFiltros(
+                coordinador.getArea(), // (Area) Filtra automáticamente por el área del coordinador
+                estadoEnum,            // (EstadoPropuesta) El Enum convertido (o null)
+                empresa,               // (String) El nombre de la empresa (o null)
+                alumnoId               // (Long) El ID del alumno (o null)
+        );
 
-        List<Propuesta> propuestas = coordinadorService.getPropuestasPorArea(
+        return ResponseEntity.ok(propuestas);
+        /*
+        List<Propuesta> propuestas = coordinadorService.getPropuestasConFiltros(
                 coordinador.getArea(), // Filtra automáticamente por el área del coordinador
                 estado,
-                empresa
-        );
-        return ResponseEntity.ok(propuestas);
-    }
+                empresa,
 
+        );
+
+        return ResponseEntity.ok(propuestas);
+
+    }
+ */
+
+    }
     /**
      * Endpoint para aprobar o denegar una propuesta.
      */
