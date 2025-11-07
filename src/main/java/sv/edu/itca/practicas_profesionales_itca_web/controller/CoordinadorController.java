@@ -3,7 +3,7 @@
 package sv.edu.itca.practicas_profesionales_itca_web.controller;
 
 
-import sv.edu.itca.practicas_profesionales_itca_web.dto.UpdateEstadoRequest; // DTO que contendrá nuevoEstado y explicacion
+import sv.edu.itca.practicas_profesionales_itca_web.dto.UpdateEstadoRequest; // DTO que contendrá nuevoEstado y explicación
 import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Usuario;
@@ -78,8 +78,7 @@ public class CoordinadorController {
 
         return ResponseEntity.ok(propuestas);
         /*
-        List<Propuesta> propuestas = coordinadorService.getPropuestasConFiltros(
-                coordinador.getArea(), // Filtra automáticamente por el área del coordinador
+        List<Propuesta> propuestas = coordinadorService.getPropuestasConFiltros(coordinador.getArea(), // Filtra automáticamente por el área del coordinador
                 estado,
                 empresa,
 
@@ -107,7 +106,7 @@ public class CoordinadorController {
             );
             return ResponseEntity.ok(actualizada);
         } catch (IllegalStateException e) {
-            // Si falta la explicación al denegar
+            // Sí falta la explicación al denegar
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (RuntimeException e) {
             // Si no se encuentra la propuesta

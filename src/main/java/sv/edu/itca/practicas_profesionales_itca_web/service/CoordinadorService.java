@@ -4,7 +4,6 @@ package sv.edu.itca.practicas_profesionales_itca_web.service;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Area;
 import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;
-import sv.edu.itca.practicas_profesionales_itca_web.model.Usuario;
 import sv.edu.itca.practicas_profesionales_itca_web.repository.PropuestaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 // Consulta dinamica en el servicio (agregado)
@@ -12,7 +11,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CoordinadorService {
