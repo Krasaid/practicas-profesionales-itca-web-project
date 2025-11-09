@@ -19,12 +19,6 @@ public class PracticasProfesionalesItcaWebApplication {
     public static void main(String[] args) {
         SpringApplication.run(PracticasProfesionalesItcaWebApplication.class, args);
     }
-
-    // --- PEGA EL BEAN DEL SEMBRADOR AQUÍ ---
-    /**
-     * Bean para "sembrar" (seed) la base de datos con usuarios de prueba.
-     * Solo se ejecutará si el repositorio de usuarios está vacío.
-     */
     @Bean
     CommandLineRunner commandLineRunner(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {

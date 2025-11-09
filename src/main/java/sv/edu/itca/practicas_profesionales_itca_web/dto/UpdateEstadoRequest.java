@@ -1,4 +1,5 @@
-package sv.edu.itca.practicas_profesionales_itca_web.dto; // (Asegúrate que el paquete sea el tuyo)
+//UpdateEstadoRequest dto
+package sv.edu.itca.practicas_profesionales_itca_web.dto;
 
 import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;
 import lombok.Data;

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ?: 'Sistema de Gestión'"></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        html, body { height: 100%; overflow: hidden; }
+        #app-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background-color: #ffffff; padding: 20px; flex-shrink: 0; border-right: 1px solid #dbdbdb; }
+        .main-container { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: #f7f7f7; }
+        .top-navbar { background-color: #ffffff; border-bottom: 1px solid #dbdbdb; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .page-content { padding: 2rem; flex-grow: 1; }
+        .brand-logo { display: flex; align-items: center; gap: 10px; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0; }
+        .brand-logo .icon { background-color: #3e8ed0; border-radius: 50%; padding: 8px; color: white; }
+        .brand-logo .title { margin-bottom: 0; }
+        .brand-logo .subtitle { margin-bottom: 0; }
+        .menu-list a { padding: 0.75em 1em; border-radius: 6px; }
+        .menu-list a.is-active { background-color: #3e8ed0; color: white; font-weight: 600; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+    </style>
+</head>
+
+<body>
+<aside class="sidebar menu" th:fragment="sidebar">
+    <div class="brand-logo">
+        <span class="icon is-medium"><i class="fas fa-book-open"></i></span>
+        <div>
+            <p class="title is-5">SGP</p>
+            <p class="subtitle is-7 has-text-grey">Sistema de Prácticas</p>
+        </div>
+    </div>
+    <p class="menu-label">General</p>
+    <ul class="menu-list">
+        <li><a th:href="@{/alumno/dashboard}" th:classappend="${requestURI != null && requestURI.startsWith('/alumno/dashboard')} ? 'is-active'">
+            <span class="icon"><i class="fas fa-tachometer-alt"></i></span> Dashboard
+        </a></li>
+        <li><a th:href="@{/alumno/nueva-propuesta}" th:classappend="${requestURI != null && requestURI.startsWith('/alumno/nueva-propuesta')} ? 'is-active'">
+            <span class="icon"><i class="fas fa-plus-circle"></i></span> Nueva Propuesta
+        </a></li>
+    </ul>
+</aside>
+
+<nav class="top-navbar" th:fragment="navbar">
+    <h1 class="title is-4" th:text="${headerTitle} ?: 'Panel'">Portal</h1>
+    <div class="navbar-end is-flex is-align-items-center">
+        <div class="user-info mr-4">
+            <span class="icon is-medium"><i class="fas fa-user-circle fa-lg"></i></span>
+            <div>
+                <p class="has-text-weight-bold" th:text="${#authentication.name}">Usuario</p>
+                <p class="is-size-7 has-text-grey" th:text="'(' + ${#authentication.principal.authorities[0].authority.toLowerCase()} + ')'">(rol)</p>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <button class="button is-danger">
+                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Cerrar Sesión</span>
+            </button>
+        </form>
+    </div>
+</nav>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
-package sv.edu.itca.practicas_profesionales_itca_web.service; // (Asegúrate que tu paquete sea este)
+//AlumnoService
+package sv.edu.itca.practicas_profesionales_itca_web.service;
 
 import sv.edu.itca.practicas_profesionales_itca_web.model.EstadoPropuesta;
 import sv.edu.itca.practicas_profesionales_itca_web.model.Propuesta;

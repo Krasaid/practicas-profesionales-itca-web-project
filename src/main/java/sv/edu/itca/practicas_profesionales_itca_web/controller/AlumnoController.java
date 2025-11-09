@@ -1,3 +1,4 @@
+//AlumnoController
 package sv.edu.itca.practicas_profesionales_itca_web.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;

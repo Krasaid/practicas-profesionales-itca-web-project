@@ -2,8 +2,8 @@ package sv.edu.itca.practicas_profesionales_itca_web.model; // (O tu paquete)
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Data; // <-- Asegúrate que @Data esté importado
-import java.time.LocalDate;
+import lombok.Data;
+import java.time.LocalDate; // <-- Asegúrate de tener este import
 
 @Data // <-- ¡Asegúrate que @Data esté aquí!
 @Entity
@@ -14,7 +14,6 @@ public class Propuesta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "alumno_id", nullable = false)
     private Usuario alumno;
@@ -22,20 +21,34 @@ public class Propuesta {
     @Enumerated(EnumType.STRING)
     private EstadoPropuesta estado;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // Hacemos que la empresa sea obligatoria
     private String empresa;
 
     private LocalDate fechaEnvio;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // Hacemos las horas obligatorias
     private int horasPropuestas;
 
     private String explicacionRechazo;
 
-    // --- ¡ASEGÚRATE QUE ESTOS 3 CAMPOS ESTÉN AQUÍ! ---
+    // --- ¡CAMPOS NUEVOS AÑADIDOS! ---
+
+    /**
+     * Descripción detallada de las actividades a realizar.
+     * Usamos "TEXT" para permitir descripciones largas (más de 255 caracteres).
+     */
     @Column(columnDefinition = "TEXT")
     private String descripcion;
+
+    /**
+     * Fecha de inicio de la práctica.
+     */
     private LocalDate fechaInicio;
+
+    /**
+     * Fecha de finalización de la práctica.
+     */
     private LocalDate fechaFin;
-    // --- FIN DE CAMPOS ---
+
+    // --- FIN DE CAMPOS NUEVOS ---
 }

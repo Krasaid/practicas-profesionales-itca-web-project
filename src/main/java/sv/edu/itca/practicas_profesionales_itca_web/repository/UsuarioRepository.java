@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // Spring Data JPA entiende este método por el nombre.
-    // Lo usará Spring Security para buscar al usuario por su correo al hacer login [cite: 16, 29].
+    // Lo usará Spring Security para buscar al usuario por su correo al hacer login
     Optional<Usuario> findByCorreoInstitucional(String correo);
 }
